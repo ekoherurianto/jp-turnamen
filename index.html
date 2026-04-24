@@ -108,9 +108,8 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz4WiQrjOeZju_UXyN-p-xRCRBtTFzQq4Fg0sNizjVo-gfCj3o5D7RsR8Cu9tbrt00/exec"; 
     const ADMIN_PIN = "admin1234"; 
 
-    // --- LOGIKA URL PARAMETER ---
     const urlParams = new URLSearchParams(window.location.search);
-    const catFromUrl = urlParams.get('cat'); // Misal: ?cat=Ganda_Putra
+    const catFromUrl = urlParams.get('cat'); 
 
     let teams = []; 
     let matches = []; 
@@ -118,14 +117,11 @@
 
     window.onload = () => {
         document.getElementById('startDate').valueAsDate = new Date();
-        
-        // Jika ada kategori di URL, masukkan ke input filter
         if(catFromUrl) {
             const filterInput = document.getElementById('categoryFilter');
             filterInput.value = catFromUrl.replace(/_/g, " ");
             syncTitle();
         }
-        
         loadFromSheets();
     };
 
@@ -153,30 +149,46 @@
     async function loadFromSheets() {
         showLoading();
         try {
-            // Kita panggil sheet spesifik jika ada filter kategori
             const currentCat = document.getElementById('categoryFilter').value.trim();
+            // Ambil data dari tab spesifik jika ada
             const fetchUrl = currentCat ? `${SCRIPT_URL}?sheet=${currentCat.replace(/ /g, "_")}` : SCRIPT_URL;
             
             const res = await fetch(fetchUrl);
             const data = await res.json();
-            if(data.length > 0) {
-                matches = data;
-                updateCategoryDatalist();
-                renderSchedule();
-                calculateStandings();
-            }
+            
+            // Simpan semua data ke variabel global matches
+            matches = data;
+            
+            updateCategoryDatalist();
+            renderSchedule();
+            calculateStandings();
         } catch (e) { console.error("Error Loading", e); }
         finally { hideLoading(); }
     }
 
+    // FUNGSI KRUSIAL: Menyimpan ke Google Sheets
     async function saveToSheets() {
-        if(!confirm("Simpan perubahan ke Cloud?")) return;
+        const currentCat = document.getElementById('categoryFilter').value.trim();
+        if(!currentCat) return alert("Pilih kategori dulu!");
+        
+        // Filter hanya pertandingan untuk kategori aktif agar tidak merusak tab lain
+        const dataToSave = matches.filter(m => m.category === currentCat);
+        
+        if(dataToSave.length === 0) return alert("Tidak ada data untuk disimpan.");
+
         showLoading();
         try {
-            await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(matches) });
-            alert("Berhasil disimpan!");
-            loadFromSheets();
-        } catch (e) { alert("Gagal Simpan"); }
+            const response = await fetch(SCRIPT_URL, { 
+                method: 'POST', 
+                body: JSON.stringify(dataToSave) 
+            });
+            const result = await response.text();
+            alert(result); // Menampilkan pesan sukses dari Code.gs
+            loadFromSheets(); // Refresh data
+        } catch (e) { 
+            console.error(e);
+            alert("Gagal Simpan ke Cloud"); 
+        }
         finally { hideLoading(); }
     }
 
@@ -206,9 +218,11 @@
         const currentCat = document.getElementById('categoryFilter').value.trim();
         if (!currentCat) return alert("Isi nama kategori terlebih dahulu!");
         if (teams.length < 2) return alert("Minimal 2 tim!");
-        if(!confirm(`Generate jadwal baru untuk ${currentCat}?`)) return;
+        if(!confirm(`Generate jadwal baru untuk ${currentCat}? Semua skor lama di kategori ini akan hilang.`)) return;
 
+        // Hapus data lama kategori ini saja
         matches = matches.filter(m => m.category !== currentCat);
+        
         let participants = teams.map(t => t.name);
         if (participants.length % 2 !== 0) participants.push("BYE");
 
@@ -234,23 +248,27 @@
         }
         teams = []; 
         renderTeams();
-        updateCategoryDatalist();
         renderSchedule(); 
         calculateStandings();
+        alert("Jadwal terbuat! Jangan lupa klik SIMPAN KE CLOUD.");
     }
 
     function editMatch(indexInFiltered, field, value) {
         if(!isAdmin) return;
         const currentCat = document.getElementById('categoryFilter').value.trim();
         const filtered = matches.filter(m => m.category === currentCat);
-        const originalIndex = matches.indexOf(filtered[indexInFiltered]);
+        const matchToUpdate = filtered[indexInFiltered];
 
-        matches[originalIndex][field] = value;
+        // Update nilainya
+        matchToUpdate[field] = value;
+        
+        // Logika status selesai
         if(field === 's1' || field === 's2') {
-            matches[originalIndex].done = (matches[originalIndex].s1 !== "" && matches[originalIndex].s2 !== "" && matches[originalIndex].s1 !== null);
+            matchToUpdate.done = (matchToUpdate.s1 !== "" && matchToUpdate.s2 !== "" && matchToUpdate.s1 !== null);
         }
-        if(field === 'round' || field === 'date') renderSchedule();
+        
         calculateStandings();
+        // Kita tidak panggil renderSchedule() di sini agar input tidak tertutup/reset saat sedang mengetik
     }
 
     function renderSchedule() {
@@ -274,16 +292,17 @@
                     <div class="match-card">
                         <div class="d-flex justify-content-between mb-2 small text-muted">
                             ${isAdmin ? 
-                            `<span><input type="date" class="edit-field" value="${formatToInputDate(m.date)}" onchange="editMatch(${i}, 'date', this.value)"></span>
+                            `<span><input type="date" class="edit-field" value="${formatToInputDate(m.date)}" onchange="editMatch(${i}, 'date', this.value); renderSchedule();"></span>
                              <span>L:<input type="text" class="edit-field" style="width:30px" value="${m.court}" onchange="editMatch(${i}, 'court', this.value)"></span>` :
                             `<span>📅 ${formatIndo(m.date)}</span> <span>🏟️ Lap: ${m.court}</span>`}
                             <span class="${m.done ? 'status-selesai' : 'status-pending'}">${m.done ? 'Selesai' : 'Pending'}</span>
                         </div>
                         <div class="d-flex align-items-center justify-content-between">
                             <div class="fw-bold" style="flex: 1; min-width: 0; word-wrap: break-word;">${m.t1}</div>
-                            <div class="d-flex gap-1">
+                            <div class="d-flex gap-1 align-items-center">
                                 <input type="number" class="score-input" value="${m.s1}" ${!isAdmin ? 'disabled' : ''} oninput="editMatch(${i}, 's1', this.value)">
                                 <input type="number" class="score-input" value="${m.s2}" ${!isAdmin ? 'disabled' : ''} oninput="editMatch(${i}, 's2', this.value)">
+                                ${isAdmin ? `<button class="btn btn-sm btn-success p-1 ms-1" title="Simpan Cepat" onclick="saveToSheets()">☁️</button>` : ''}
                             </div>
                             <div class="fw-bold text-end" style="flex: 1; min-width: 0; word-wrap: break-word;">${m.t2}</div>
                         </div>
@@ -304,11 +323,11 @@
         let catTeams = [...new Set(filtered.map(m => [m.t1, m.t2]).flat())];
         
         let stats = {};
-        catTeams.forEach(name => { if(name !== "BYE") stats[name] = { m:0, w:0, l:0, pm:0, pk:0, diff:0, p:0 }; });
+        catTeams.forEach(name => { if(name && name !== "BYE") stats[name] = { m:0, w:0, l:0, pm:0, pk:0, diff:0, p:0 }; });
 
         filtered.forEach(m => {
             if (m.done && stats[m.t1] && stats[m.t2]) {
-                let s1 = parseInt(m.s1), s2 = parseInt(m.s2);
+                let s1 = parseInt(m.s1) || 0, s2 = parseInt(m.s2) || 0;
                 stats[m.t1].m++; stats[m.t2].m++;
                 stats[m.t1].pm += s1; stats[m.t1].pk += s2;
                 stats[m.t2].pm += s2; stats[m.t2].pk += s1;
