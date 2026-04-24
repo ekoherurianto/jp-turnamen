@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">Manajemen Pertandingan Badminton</title>
+    <title id="pageTitle">JP-Manajemen Turnamen</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -25,8 +25,6 @@
         .table-custom tbody tr:nth-child(2) { background-color: rgba(192, 192, 192, 0.15) !important; border-left: 4px solid #c0c0c0; }
         .table-custom tbody tr:nth-child(3) { background-color: rgba(205, 127, 50, 0.15) !important; border-left: 4px solid #cd7f32; }
         .points-cell { font-weight: 800; color: #198754; }
-        /* Style baru untuk menu kategori */
-        .btn-menu-cat { transition: 0.2s; border-radius: 20px; font-weight: 600; font-size: 0.85rem; }
     </style>
 </head>
 <body>
@@ -39,28 +37,21 @@
         </div>
     </div>
 
-    <div class="text-center mb-3">
-        <h1 class="fw-bold text-success mb-0">Managemen Pertandingan</h1>
-        <h2 class="text-dark opacity-75" style="font-size: 1.5rem;" id="dynamicCat">TOURNAMENT</h2>
+    <div class="text-center mb-4">
+        <h1 class="fw-bold text-success">🏸 <span id="dynamicCat">Turnamen</span></h1>
         <div id="syncStatus" class="badge bg-secondary">Mode: Visitor</div>
         <button id="loginBtn" class="btn btn-sm btn-dark ms-2" onclick="loginAdmin()">Login Admin</button>
     </div>
 
-    <div id="categoryMenu" class="d-flex flex-wrap justify-content-center gap-2 mb-4">
-        </div>
-
     <div class="card p-3 mb-4 border-success border-top border-4">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="fw-bold mb-0">🏸 Pilih Kategori:</h6>
-            <button class="btn btn-sm btn-link text-success text-decoration-none p-0" onclick="copyCurrentLink()">🔗 Salin Link Kategori Ini</button>
-        </div>
+        <h6 class="fw-bold">🏸 Nama Turnamen:</h6>
         <div class="input-group">
             <input type="text" id="categoryFilter" class="form-control form-control-lg" 
-                   placeholder="Ketik nama kategori..." 
+                   placeholder="Ketik nama kategori (Contoh: PB SURVEY)..." 
                    list="categoryOptions"
                    oninput="syncTitle(); renderSchedule(); calculateStandings();">
             <datalist id="categoryOptions"></datalist>
-            <span class="input-group-text bg-success text-white" style="cursor:pointer" onclick="loadFromSheets()">🔄 Load</span>
+            <span class="input-group-text bg-success text-white">🔍</span>
         </div>
     </div>
 
@@ -68,7 +59,7 @@
         <div class="col-lg-4 admin-only" id="adminPanel">
             <div class="card p-3 border-primary border-top border-4">
                 <h5 class="fw-bold text-primary">⚙️ Kontrol Admin</h5>
-                <label class="small fw-bold">Tambah Tim</label>
+                <label class="small fw-bold">Tambah Tim (Kategori Aktif)</label>
                 <div class="input-group mb-3">
                     <input type="text" id="teamInput" class="form-control" placeholder="Nama Ganda...">
                     <button class="btn btn-primary" onclick="addTeam()">+</button>
@@ -98,10 +89,8 @@
                         <tbody id="standingsBody" style="font-size: 0.9rem;"></tbody>
                     </table>
                 </div>
-                <div class="d-flex gap-2 mt-2">
-                    <button class="btn btn-outline-primary btn-sm flex-fill" onclick="exportToPNG()">🖼️ PNG</button>
-                    <button class="btn btn-outline-primary btn-sm flex-fill" onclick="exportToExcel()">📥 Excel</button>
-                </div>
+                <button class="btn btn-outline-primary btn-sm w-100 mt-2" onclick="exportToPNG()">🖼️ Download PNG</button>
+                <button class="btn btn-outline-primary btn-sm w-100 mt-2" onclick="exportToExcel()">📥 Download Excel</button>
             </div>
         </div>
     </div>
@@ -110,8 +99,8 @@
     
     <footer class="text-center mt-5 mb-4 text-muted">
         <hr class="mb-4" style="opacity: 0.1;">
-        <p class="small mb-0">&copy; 2026 <strong>JP-Managemen Turnamen <br>Developed for</strong></p>
-        <p style="font-size: 0.75rem;"  id="dynamicCat">PB Turnamen</p>
+        <p class="small mb-0">&copy; 2026 <strong>JP</strong>. All Rights Reserved.</p>
+        <p style="font-size: 0.75rem;">By Juragan Pasir, Developed for Badminton Tournament</p>
     </footer>
 </div>
 
@@ -138,40 +127,9 @@
 
     function syncTitle() {
         const val = document.getElementById('categoryFilter').value;
-        const display = val ? val : "TOURNAMENT";
+        const display = val ? "- " + val : "TOURNAMENT";
         document.getElementById('dynamicCat').innerText = display;
-        document.title = "Regar Cup - " + display;
-    }
-
-    function renderCategoryMenu() {
-        const menuContainer = document.getElementById('categoryMenu');
-        const categories = [...new Set(matches.map(m => m.category))].filter(c => c);
-        
-        if (categories.length === 0) return;
-
-        menuContainer.innerHTML = categories.map(cat => `
-            <button class="btn btn-sm btn-outline-success btn-menu-cat" onclick="selectCategory('${cat}')">
-                🏸 ${cat}
-            </button>
-        `).join('');
-    }
-
-    function selectCategory(catName) {
-        document.getElementById('categoryFilter').value = catName;
-        // Update URL tanpa reload
-        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?cat=' + catName.replace(/ /g, "_");
-        window.history.pushState({path:newUrl}, '', newUrl);
-        
-        syncTitle();
-        renderSchedule();
-        calculateStandings();
-    }
-
-    function copyCurrentLink() {
-        const currentCat = document.getElementById('categoryFilter').value.trim();
-        if(!currentCat) return alert("Pilih kategori dulu!");
-        const url = window.location.origin + window.location.pathname + '?cat=' + currentCat.replace(/ /g, "_");
-        navigator.clipboard.writeText(url).then(() => alert("Link Berhasil Disalin!"));
+        document.title = "Regar Cup " + display;
     }
 
     function loginAdmin() {
@@ -191,18 +149,24 @@
     async function loadFromSheets() {
         showLoading();
         try {
-            const res = await fetch(SCRIPT_URL);
+            const currentCat = document.getElementById('categoryFilter').value.trim();
+            // Ambil data dari tab spesifik jika ada
+            const fetchUrl = currentCat ? `${SCRIPT_URL}?sheet=${currentCat.replace(/ /g, "_")}` : SCRIPT_URL;
+            
+            const res = await fetch(fetchUrl);
             const data = await res.json();
+            
+            // Simpan semua data ke variabel global matches
             matches = data;
             
             updateCategoryDatalist();
-            renderCategoryMenu(); // Munculkan menu tombol
             renderSchedule();
             calculateStandings();
         } catch (e) { console.error("Error Loading", e); }
         finally { hideLoading(); }
     }
 
+    // FUNGSI KRUSIAL: Menyimpan ke Google Sheets
     async function saveToSheets() {
         const currentCat = document.getElementById('categoryFilter').value.trim();
         if(!currentCat) return alert("Pilih kategori dulu!");
@@ -212,16 +176,23 @@
 
         showLoading();
         try {
-            // Menggunakan mode no-cors untuk menghindari "Gagal Simpan" palsu
-            await fetch(SCRIPT_URL, { 
-                method: 'POST', 
-                mode: 'no-cors',
+            // Kita tambahkan mode 'no-cors' atau cek status manual
+            const response = await fetch(SCRIPT_URL, { 
+                method: 'POST',
+                mode: 'no-cors', // Menghindari error blokir browser tapi tetap kirim data
                 body: JSON.stringify(dataToSave) 
             });
-            alert("Berhasil Terkirim ke Cloud!");
-            setTimeout(() => { loadFromSheets(); }, 1000);
+
+            // Karena menggunakan no-cors, browser tidak bisa baca isi teksnya
+            // Tapi jika sampai sini tanpa masuk ke 'catch', berarti request terkirim
+            alert("Perintah Simpan Terkirim ke Cloud!"); 
+            
+            // Refresh data setelah jeda sedikit agar Google Sheets selesai proses
+            setTimeout(() => { loadFromSheets(); }, 1500);
+
         } catch (e) { 
-            alert("Gagal Simpan ke Cloud"); 
+            console.error(e);
+            alert("Koneksi Error. Cek apakah internet stabil."); 
         }
         finally { hideLoading(); }
     }
@@ -252,9 +223,11 @@
         const currentCat = document.getElementById('categoryFilter').value.trim();
         if (!currentCat) return alert("Isi nama kategori terlebih dahulu!");
         if (teams.length < 2) return alert("Minimal 2 tim!");
-        if(!confirm(`Generate jadwal baru untuk ${currentCat}?`)) return;
+        if(!confirm(`Generate jadwal baru untuk ${currentCat}? Semua skor lama di kategori ini akan hilang.`)) return;
 
+        // Hapus data lama kategori ini saja
         matches = matches.filter(m => m.category !== currentCat);
+        
         let participants = teams.map(t => t.name);
         if (participants.length % 2 !== 0) participants.push("BYE");
 
@@ -282,7 +255,7 @@
         renderTeams();
         renderSchedule(); 
         calculateStandings();
-        alert("Jadwal terbuat! Klik SIMPAN KE CLOUD.");
+        alert("Jadwal terbuat! Jangan lupa klik SIMPAN KE CLOUD.");
     }
 
     function editMatch(indexInFiltered, field, value) {
@@ -290,11 +263,17 @@
         const currentCat = document.getElementById('categoryFilter').value.trim();
         const filtered = matches.filter(m => m.category === currentCat);
         const matchToUpdate = filtered[indexInFiltered];
+
+        // Update nilainya
         matchToUpdate[field] = value;
+        
+        // Logika status selesai
         if(field === 's1' || field === 's2') {
             matchToUpdate.done = (matchToUpdate.s1 !== "" && matchToUpdate.s2 !== "" && matchToUpdate.s1 !== null);
         }
+        
         calculateStandings();
+        // Kita tidak panggil renderSchedule() di sini agar input tidak tertutup/reset saat sedang mengetik
     }
 
     function renderSchedule() {
@@ -302,7 +281,7 @@
         const currentCat = document.getElementById('categoryFilter').value.trim();
         const filtered = matches.filter(m => m.category === currentCat);
 
-        if (!filtered.length) { container.innerHTML = "<div class='alert alert-light text-center mt-3'>Silakan pilih kategori di atas.</div>"; return; }
+        if (!filtered.length) { container.innerHTML = "<div class='alert alert-light text-center mt-3'>Ketik nama kategori untuk melihat jadwal.</div>"; return; }
         
         filtered.sort((a, b) => a.round - b.round);
         let html = "", currentRound = -1;
@@ -328,7 +307,7 @@
                             <div class="d-flex gap-1 align-items-center">
                                 <input type="number" class="score-input" value="${m.s1}" ${!isAdmin ? 'disabled' : ''} oninput="editMatch(${i}, 's1', this.value)">
                                 <input type="number" class="score-input" value="${m.s2}" ${!isAdmin ? 'disabled' : ''} oninput="editMatch(${i}, 's2', this.value)">
-                                ${isAdmin ? `<button class="btn btn-sm btn-success p-1 ms-1" title="Simpan" onclick="saveToSheets()">☁️</button>` : ''}
+                                ${isAdmin ? `<button class="btn btn-sm btn-success p-1 ms-1" title="Simpan Cepat" onclick="saveToSheets()">☁️</button>` : ''}
                             </div>
                             <div class="fw-bold text-end" style="flex: 1; min-width: 0; word-wrap: break-word;">${m.t2}</div>
                         </div>
@@ -344,8 +323,10 @@
     function calculateStandings() {
         const currentCat = document.getElementById('categoryFilter').value.trim();
         document.getElementById('categoryLabel').innerText = currentCat ? `(${currentCat})` : "";
+        
         const filtered = matches.filter(m => m.category === currentCat);
         let catTeams = [...new Set(filtered.map(m => [m.t1, m.t2]).flat())];
+        
         let stats = {};
         catTeams.forEach(name => { if(name && name !== "BYE") stats[name] = { m:0, w:0, l:0, pm:0, pk:0, diff:0, p:0 }; });
 
