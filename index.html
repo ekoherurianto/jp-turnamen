@@ -8,23 +8,97 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        body { background-color: #f8f9fa; padding: 15px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        :root {
+            --bwf-green: #32CD32;
+			--bwf-blue: #003366;
+            --bwf-red: #e10600;
+            --bwf-yellow: #ffcc00;
+            --bwf-light: #f4f7f9;
+        }
+
+        body { 
+            background-color: var(--bwf-light); 
+            padding: 15px; 
+            font-family: 'Arial Black', Gadget, sans-serif; /* Font lebih tegas ala sports */
+        }
+
         .admin-only { display: none; }
-        .card { border-radius: 15px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .match-card { background: white; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #198754; }
-        .round-header { background: #198754; color: white; padding: 10px; border-radius: 8px; margin-top: 20px; font-weight: bold; display: flex; justify-content: space-between; }
-        .edit-field { border: 1px dashed #ccc; border-radius: 4px; padding: 2px; font-size: 0.8rem; width: 100%; }
-        .score-input { width: 50px; text-align: center; font-weight: bold; border-radius: 5px; border: 1px solid #ddd; }
-		.status-selesai { background-color: #198754; color: white; padding: 2px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: bold; }
-		.status-pending { background-color: #ffc107; color: #000; padding: 2px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: bold; }
-		#standingsCol .card { border-top: 4px solid #198754; }
-		.table-custom { border-radius: 10px; overflow: hidden; }
-		.table-custom thead { background: linear-gradient(45deg, #141e30, #243b55); color: white; }
-		.table-custom tbody tr:hover { background-color: rgba(25, 135, 84, 0.1) !important; transition: 0.3s; }
-		.table-custom tbody tr:nth-child(1) { background-color: rgba(255, 215, 0, 0.15) !important; border-left: 4px solid #ffd700; }
-		.table-custom tbody tr:nth-child(2) { background-color: rgba(192, 192, 192, 0.15) !important; border-left: 4px solid #c0c0c0; }
-		.table-custom tbody tr:nth-child(3) { background-color: rgba(205, 127, 50, 0.15) !important; border-left: 4px solid #cd7f32; }
-		.points-cell { font-weight: 800; color: #198754; }
+
+        /* Card Style ala BWF */
+        .card { 
+            border-radius: 0; /* BWF sering pakai sudut tajam/kotak */
+            border: none; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
+            margin-bottom: 20px; 
+            border-top: 5px solid var(--bwf-red) !important; 
+        }
+
+        /* Match Card */
+        .match-card { 
+            background: white; 
+            padding: 15px; 
+            margin-bottom: 15px; 
+            border-left: 8px solid var(--bwf-blue); 
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .round-header { 
+			background: var(--bwf-blue); 
+			color: white; 
+			padding: 10px; 
+			border-radius: 0; /* Kotak tajam ala BWF */
+			margin-top: 30px; 
+			font-weight: bold; 
+			display: flex; 
+			flex-direction: column; /* Membuat teks menumpuk ke bawah agar rapi di tengah */
+			align-items: center;    /* Rata tengah secara horizontal */
+			justify-content: center; 
+			text-transform: uppercase;
+			border-bottom: 4px solid var(--bwf-red);
+		}
+
+		.round-header span {
+			font-size: 1.2rem;
+			letter-spacing: 2px;
+		}
+
+		.round-header small {
+			color: var(--bwf-yellow); /* Tanggal pakai warna kuning emas BWF */
+			font-size: 0.9rem;
+		}
+
+        /* Table/Standings ala BWF */
+        .table-custom thead { 
+            background: var(--bwf-blue); 
+            color: var(--bwf-yellow); 
+            text-transform: uppercase;
+        }
+
+        .table-custom tbody tr:nth-child(1) { 
+            background-color: rgba(255, 204, 0, 0.2) !important; 
+            border-left: 5px solid var(--bwf-yellow); 
+        }
+
+        .points-cell { font-weight: 800; color: var(--bwf-blue); }
+
+        /* Status Badges */
+        .status-selesai { background-color: var(--bwf-green); color: white; }
+        .status-pending { background-color: #ddd; color: #333; }
+
+        /* Buttons */
+        .btn-success { background-color: var(--bwf-red); border: none; font-weight: bold; }
+        .btn-success:hover { background-color: #b30500; }
+        
+        .text-success { color: var(--bwf-blue) !important; }
+        
+        /* Input Score */
+        .score-input { 
+            width: 45px; 
+            background: #eee; 
+            border: 1px solid #ccc; 
+            font-size: 1.1rem; 
+            color: var(--bwf-blue);
+        }
     </style>
 </head>
 <body>
@@ -38,9 +112,11 @@
 	</div>
 
     <div class="text-center mb-4">
-        <h1 class="fw-bold text-success">🏸 PB SURVEY TOURNAMENT</h1>
-        <div id="syncStatus" class="badge bg-secondary">Mode: Visitor</div>
-        <button id="loginBtn" class="btn btn-sm btn-dark ms-2" onclick="loginAdmin()">Login Admin</button>
+        <h1 class="fw-bold" style="color: var(--bwf-blue); letter-spacing: -1px;">
+            <span style="color: var(--bwf-red);">BWF</span> PB SURVEY <span style="font-weight: 300;">TOUR <br> S1000</span>
+        </h1>
+        <div id="syncStatus" class="badge bg-dark">OFFICIAL SCORING</div>
+        <button id="loginBtn" class="btn btn-sm btn-outline-dark ms-2" onclick="loginAdmin()">Admin Access</button>
     </div>
 
     <div class="card p-3 mb-4 border-success border-top border-4">
@@ -57,7 +133,7 @@
         <small class="text-muted mt-1">*Ketik untuk mencari atau membuat kategori baru.</small>
     </div>
 
-    <div class="row">
+    <div class="row justify-content-center">
         <div class="col-lg-4 admin-only" id="adminPanel">
             <div class="card p-3 border-primary border-top border-4">
                 <h5 class="fw-bold text-primary">⚙️ Kontrol Admin</h5>
@@ -252,7 +328,13 @@
             if (m.round !== currentRound) {
                 if (currentRound !== -1) html += `</div>`; 
                 currentRound = m.round;
-                html += `<div class="round-header"><span>PUTARAN ${currentRound}</span> <small>${formatIndo(m.date)}</small></div><div class="row mt-2">`;
+                // Baris BARU:
+				html += `
+					<div class="round-header">
+						<span>PUTARAN ${currentRound}</span>
+						<small>JADWAL: ${formatIndo(m.date)}</small>
+					</div>
+					<div class="row mt-2 justify-content-center">`;
             }
             html += `
                 <div class="col-md-6 col-lg-4">
@@ -324,7 +406,7 @@
 
     document.getElementById('standingsBody').innerHTML = sorted.map((s, idx) => `
         <tr>
-            <td class="text-start fw-bold">${idx<2?['🥇','🥈','🥉'][idx]:''} ${s.name}</td>
+            <td class="text-start fw-bold">${idx<3?['🥇','🥈','🥉'][idx]:''} ${s.name}</td>
             <td>${s.m}</td>
             <td>${s.w}</td>
             <td>${s.l}</td>
@@ -394,6 +476,5 @@
 </script>
 </body>
 </html>
-
 
 
