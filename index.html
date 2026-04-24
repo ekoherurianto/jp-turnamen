@@ -171,23 +171,28 @@
         const currentCat = document.getElementById('categoryFilter').value.trim();
         if(!currentCat) return alert("Pilih kategori dulu!");
         
-        // Filter hanya pertandingan untuk kategori aktif agar tidak merusak tab lain
         const dataToSave = matches.filter(m => m.category === currentCat);
-        
         if(dataToSave.length === 0) return alert("Tidak ada data untuk disimpan.");
 
         showLoading();
         try {
+            // Kita tambahkan mode 'no-cors' atau cek status manual
             const response = await fetch(SCRIPT_URL, { 
-                method: 'POST', 
+                method: 'POST',
+                mode: 'no-cors', // Menghindari error blokir browser tapi tetap kirim data
                 body: JSON.stringify(dataToSave) 
             });
-            const result = await response.text();
-            alert(result); // Menampilkan pesan sukses dari Code.gs
-            loadFromSheets(); // Refresh data
+
+            // Karena menggunakan no-cors, browser tidak bisa baca isi teksnya
+            // Tapi jika sampai sini tanpa masuk ke 'catch', berarti request terkirim
+            alert("Perintah Simpan Terkirim ke Cloud!"); 
+            
+            // Refresh data setelah jeda sedikit agar Google Sheets selesai proses
+            setTimeout(() => { loadFromSheets(); }, 1500);
+
         } catch (e) { 
             console.error(e);
-            alert("Gagal Simpan ke Cloud"); 
+            alert("Koneksi Error. Cek apakah internet stabil."); 
         }
         finally { hideLoading(); }
     }
