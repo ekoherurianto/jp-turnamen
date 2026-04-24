@@ -11,32 +11,28 @@
         body { background-color: #f8f9fa; padding: 15px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .admin-only { display: none; }
         .card { border-radius: 15px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .match-card { background: white; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #198754; }
+        .match-card { background: white; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #198754; transition: 0.2s; }
+        .match-card:hover { transform: scale(1.02); }
         .round-header { background: #198754; color: white; padding: 10px; border-radius: 8px; margin-top: 20px; font-weight: bold; display: flex; justify-content: space-between; }
         .edit-field { border: 1px dashed #ccc; border-radius: 4px; padding: 2px; font-size: 0.8rem; width: 100%; }
-        .score-input { width: 50px; text-align: center; font-weight: bold; border-radius: 5px; border: 1px solid #ddd; }
+        .score-input { width: 55px; text-align: center; font-weight: bold; border-radius: 5px; border: 1px solid #ddd; outline: none; }
+        .score-input:focus { border-color: #198754; box-shadow: 0 0 5px rgba(25,135,84,0.3); }
         .status-selesai { background-color: #198754; color: white; padding: 2px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: bold; }
         .status-pending { background-color: #ffc107; color: #000; padding: 2px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: bold; }
         #standingsCol .card { border-top: 4px solid #198754; }
         .table-custom { border-radius: 10px; overflow: hidden; }
         .table-custom thead { background: linear-gradient(45deg, #141e30, #243b55); color: white; }
-        .table-custom tbody tr:hover { background-color: rgba(25, 135, 84, 0.1) !important; transition: 0.3s; }
-        .table-custom tbody tr:nth-child(1) { background-color: rgba(255, 215, 0, 0.15) !important; border-left: 4px solid #ffd700; }
-        .table-custom tbody tr:nth-child(2) { background-color: rgba(192, 192, 192, 0.15) !important; border-left: 4px solid #c0c0c0; }
-        .table-custom tbody tr:nth-child(3) { background-color: rgba(205, 127, 50, 0.15) !important; border-left: 4px solid #cd7f32; }
         .points-cell { font-weight: 800; color: #198754; }
-        .btn-menu-cat { border-radius: 20px; font-weight: 600; padding: 8px 18px; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .btn-menu-cat:hover { transform: translateY(-2px); background-color: #198754 !important; color: white !important; }
+        .btn-menu-cat { border-radius: 20px; font-weight: 600; padding: 8px 18px; transition: 0.3s; }
+        .active-cat { background-color: #198754 !important; color: white !important; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="loadingOverlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); z-index: 9999; justify-content: center; align-items: center;">
-        <div class="text-center">
-            <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;"></div>
-            <div class="mt-2 fw-bold">Memproses Data...</div>
-        </div>
+    <div id="loadingOverlay" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
+        <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;"></div>
+        <div class="mt-2 fw-bold">Memperbarui Data...</div>
     </div>
 
     <div class="text-center mb-4">
@@ -48,21 +44,20 @@
     </div>
 
     <div class="text-center mb-2"><small class="text-muted fw-bold">PILIH KATEGORI AKTIF:</small></div>
-    <div id="categoryMenu" class="d-flex flex-wrap justify-content-center gap-2 mb-4">
-        </div>
+    <div id="categoryMenu" class="d-flex flex-wrap justify-content-center gap-2 mb-4"></div>
 
     <div class="card p-3 mb-4 border-success border-top border-4">
         <div class="d-flex justify-content-between align-items-center mb-2">
-            <h6 class="fw-bold mb-0">🏸 Nama Turnamen:</h6>
-            <button class="btn btn-sm btn-link text-success text-decoration-none p-0" onclick="copyCurrentLink()">🔗 Salin Link WA</button>
+            <h6 class="fw-bold mb-0">🔍 Cari/Buat Kategori:</h6>
+            <button class="btn btn-sm btn-outline-success border-0" onclick="copyCurrentLink()">🔗 Salin Link WA</button>
         </div>
         <div class="input-group">
             <input type="text" id="categoryFilter" class="form-control form-control-lg" 
-                   placeholder="Ketik kategori baru atau pilih di atas..." 
+                   placeholder="Pilih atau ketik kategori..." 
                    list="categoryOptions"
                    oninput="syncTitle(); filterAndRender();">
             <datalist id="categoryOptions"></datalist>
-            <button class="btn btn-success" onclick="loadFromSheets()">🔄 Refresh Data</button>
+            <button class="btn btn-success" onclick="loadFromSheets()">🔄 Refresh</button>
         </div>
     </div>
 
@@ -70,14 +65,14 @@
         <div class="col-lg-4 admin-only" id="adminPanel">
             <div class="card p-3 border-primary border-top border-4">
                 <h5 class="fw-bold text-primary">⚙️ Kontrol Admin</h5>
-                <label class="small fw-bold">Tambah Tim (Kategori: <span id="adminCatLabel">?</span>)</label>
-                <div class="input-group mb-3">
+                <label class="small fw-bold">Daftar Pemain (Kategori: <span id="adminCatLabel">?</span>)</label>
+                <div class="input-group mb-2">
                     <input type="text" id="teamInput" class="form-control" placeholder="Nama Ganda...">
                     <button class="btn btn-primary" onclick="addTeam()">+</button>
                 </div>
-                <ul id="teamList" class="list-group list-group-flush mb-3 small"></ul>
+                <ul id="teamList" class="list-group list-group-flush mb-3 small" style="max-height: 200px; overflow-y: auto;"></ul>
                 <div class="mb-3">
-                    <label class="small fw-bold">Tanggal Mulai</label>
+                    <label class="small fw-bold">Tanggal Mulai Turnamen</label>
                     <input type="date" id="startDate" class="form-control">
                 </div>
                 <button class="btn btn-success w-100 fw-bold mb-2" onclick="generateTournament()">GENERATE JADWAL</button>
@@ -101,8 +96,8 @@
                     </table>
                 </div>
                 <div class="row g-2 mt-2">
-                    <div class="col-6"><button class="btn btn-outline-primary btn-sm w-100" onclick="exportToPNG()">🖼️ Simpan Gambar</button></div>
-                    <div class="col-6"><button class="btn btn-outline-primary btn-sm w-100" onclick="exportToExcel()">📥 Download Excel</button></div>
+                    <div class="col-6"><button class="btn btn-outline-primary btn-sm w-100" onclick="exportToPNG()">🖼️ Gambar</button></div>
+                    <div class="col-6"><button class="btn btn-outline-primary btn-sm w-100" onclick="exportToExcel()">📥 Excel</button></div>
                 </div>
             </div>
         </div>
@@ -113,7 +108,7 @@
     <footer class="text-center mt-5 mb-4 text-muted">
         <hr class="mb-4" style="opacity: 0.1;">
         <p class="small mb-0">&copy; 2026 <strong>JP</strong>. All Rights Reserved.</p>
-        <p style="font-size: 0.75rem;">By Juragan Pasir, Developed for Badminton Tournament</p>
+        <p style="font-size: 0.75rem;">Developed for Juragan Pasir Badminton Community</p>
     </footer>
 </div>
 
@@ -121,27 +116,21 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxnRqoRPNbWzpCIzVY1iQ1LN0GAKGj7MZqxSKjFrpmkH5clnT108F2EkxqXvfvA99k/exec"; 
     const ADMIN_PIN = "admin1234"; 
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const catFromUrl = urlParams.get('cat'); 
-
     let teams = []; 
     let allMatches = []; 
     let isAdmin = false;
 
     window.onload = async () => {
         document.getElementById('startDate').valueAsDate = new Date();
-        
-        // PENTING: Load data dulu agar menu kategori muncul
         await loadFromSheets();
 
-        // Setelah data ada, baru cek URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const catFromUrl = urlParams.get('cat'); 
+
         if(catFromUrl) {
             const cleanCat = catFromUrl.replace(/_/g, " ");
-            document.getElementById('categoryFilter').value = cleanCat;
-            syncTitle();
-            filterAndRender();
+            selectCategory(cleanCat);
         } else if (allMatches.length > 0) {
-            // Jika buka link bersih, otomatis pilih kategori pertama yang tersedia
             const firstCat = allMatches[0].category;
             selectCategory(firstCat);
         }
@@ -152,13 +141,19 @@
         const display = val ? val : "Turnamen";
         document.getElementById('dynamicCat').innerText = display;
         document.getElementById('adminCatLabel').innerText = display;
-        document.title = "Turnamen - " + display;
+        document.title = "JP - " + display;
     }
 
     function selectCategory(catName) {
         document.getElementById('categoryFilter').value = catName;
-        // Update URL tanpa reload halaman agar link di address bar bisa di-copy langsung
-        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?cat=' + catName.replace(/ /g, "_");
+        
+        // Update Active Class on Buttons
+        document.querySelectorAll('.btn-menu-cat').forEach(btn => {
+            btn.classList.toggle('active-cat', btn.innerText.includes(catName));
+        });
+
+        // Update URL
+        const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?cat=' + encodeURIComponent(catName.replace(/ /g, "_"));
         window.history.pushState({path:newUrl}, '', newUrl);
         
         syncTitle();
@@ -177,28 +172,23 @@
             const data = await res.json();
             allMatches = data;
             
-            // Ambil daftar kategori unik
             const categories = [...new Set(allMatches.map(m => m.category))].filter(c => c);
-            
-            // 1. Render Tombol Menu Navigasi
             const menuContainer = document.getElementById('categoryMenu');
+            
             if(categories.length > 0) {
                 menuContainer.innerHTML = categories.map(cat => `
                     <button class="btn btn-sm btn-outline-success btn-menu-cat" onclick="selectCategory('${cat}')">
                         🏸 ${cat}
                     </button>
                 `).join('');
-            } else {
-                menuContainer.innerHTML = '<small class="text-muted">Belum ada kategori. Silakan buat di bawah.</small>';
             }
 
-            // 2. Render Datalist untuk Autocomplete
             const datalist = document.getElementById('categoryOptions');
             datalist.innerHTML = categories.map(c => `<option value="${c}">`).join('');
 
             filterAndRender();
         } catch (e) { 
-            console.error("Error Loading", e); 
+            console.error("Gagal memuat data dari cloud.", e);
         } finally { 
             hideLoading(); 
         }
@@ -223,7 +213,7 @@
         if(!currentCat) return alert("Pilih kategori dulu!");
         
         const dataToSave = allMatches.filter(m => m.category === currentCat);
-        if(dataToSave.length === 0) return alert("Tidak ada data untuk disimpan.");
+        if(dataToSave.length === 0) return alert("Tidak ada data.");
 
         showLoading();
         try {
@@ -232,29 +222,36 @@
                 mode: 'no-cors',
                 body: JSON.stringify(dataToSave) 
             });
-            alert("Data Berhasil Disimpan ke Cloud!"); 
-            setTimeout(() => { loadFromSheets(); }, 1500);
-        } catch (e) { alert("Gagal Simpan."); }
+            alert("Berhasil disimpan ke Cloud!"); 
+            setTimeout(() => { loadFromSheets(); }, 1000);
+        } catch (e) { alert("Gagal menyimpan."); }
         finally { hideLoading(); }
     }
 
     function addTeam() {
         const val = document.getElementById('teamInput').value.trim();
-        if (val) { teams.push({ name: val }); document.getElementById('teamInput').value = ""; renderTeams(); }
+        if (val) { 
+            teams.push({ name: val }); 
+            document.getElementById('teamInput').value = ""; 
+            renderTeams(); 
+        }
     }
 
     function renderTeams() {
         document.getElementById('teamList').innerHTML = teams.map((t, i) => `
-            <li class="list-group-item d-flex justify-content-between py-1">${t.name} 
-            <span class="text-danger" style="cursor:pointer" onclick="teams.splice(${i},1);renderTeams()">×</span></li>
+            <li class="list-group-item d-flex justify-content-between py-1 bg-light mb-1 rounded">
+                ${t.name} 
+                <span class="text-danger fw-bold" style="cursor:pointer" onclick="teams.splice(${i},1);renderTeams()">×</span>
+            </li>
         `).join('');
     }
 
     function generateTournament() {
         const currentCat = document.getElementById('categoryFilter').value.trim();
-        if (!currentCat) return alert("Isi nama kategori!");
-        if (teams.length < 2) return alert("Minimal 2 tim!");
-        if(!confirm(`Hapus data lama dan buat jadwal baru untuk ${currentCat}?`)) return;
+        if (!currentCat) return alert("Tentukan nama kategori!");
+        if (teams.length < 2) return alert("Butuh minimal 2 tim!");
+        
+        if(!confirm(`Buat jadwal baru untuk ${currentCat}? Data lama kategori ini akan dihapus.`)) return;
 
         allMatches = allMatches.filter(m => m.category !== currentCat);
         let participants = teams.map(t => t.name);
@@ -281,18 +278,20 @@
             tempTeams.splice(1, 0, tempTeams.pop());
         }
         teams = []; renderTeams(); filterAndRender();
-        alert("Jadwal Baru Dibuat. Jangan lupa klik SIMPAN KE CLOUD.");
+        alert("Jadwal Berhasil Dibuat!");
     }
 
     function editMatch(indexInFiltered, field, value) {
         if(!isAdmin) return;
         const currentCat = document.getElementById('categoryFilter').value.trim();
         const filtered = allMatches.filter(m => m.category === currentCat);
+        
         filtered[indexInFiltered][field] = value;
-        if(field === 's1' || field === 's2') {
-            const m = filtered[indexInFiltered];
-            m.done = (m.s1 !== "" && m.s2 !== "" && m.s1 !== null && m.s2 !== null);
-        }
+        
+        const m = filtered[indexInFiltered];
+        // Logika Selesai: Jika kedua skor diisi (termasuk 0)
+        m.done = (m.s1 !== "" && m.s2 !== "" && m.s1 !== null && m.s2 !== null);
+        
         calculateStandings();
     }
 
@@ -302,7 +301,7 @@
         const filtered = allMatches.filter(m => m.category === currentCat);
 
         if (!filtered.length) { 
-            container.innerHTML = "<div class='alert alert-light text-center mt-3'>Kategori ini belum memiliki jadwal. Klik tombol kategori di atas.</div>"; 
+            container.innerHTML = "<div class='alert alert-warning text-center mt-3'>Kategori '" + currentCat + "' belum punya jadwal.</div>"; 
             return; 
         }
         
@@ -322,14 +321,13 @@
                             <span>📅 ${formatIndo(m.date)} | Lap: ${m.court}</span>
                             <span class="${m.done ? 'status-selesai' : 'status-pending'}">${m.done ? 'Selesai' : 'Pending'}</span>
                         </div>
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="fw-bold" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${m.t1}</div>
+                        <div class="d-flex align-items-center justify-content-between gap-2">
+                            <div class="fw-bold small" style="flex: 1; text-align: left;">${m.t1}</div>
                             <div class="d-flex gap-1 align-items-center">
-                                <input type="number" class="score-input" value="${m.s1}" ${!isAdmin ? 'disabled' : ''} oninput="editMatch(${i}, 's1', this.value)">
-                                <input type="number" class="score-input" value="${m.s2}" ${!isAdmin ? 'disabled' : ''} oninput="editMatch(${i}, 's2', this.value)">
-                                ${isAdmin ? `<button class="btn btn-sm btn-success p-1 ms-1" onclick="saveToSheets()" title="Simpan Cepat">☁️</button>` : ''}
+                                <input type="number" min="0" class="score-input" value="${m.s1}" ${!isAdmin ? 'disabled' : ''} oninput="editMatch(${i}, 's1', this.value)">
+                                <input type="number" min="0" class="score-input" value="${m.s2}" ${!isAdmin ? 'disabled' : ''} oninput="editMatch(${i}, 's2', this.value)">
                             </div>
-                            <div class="fw-bold text-end" style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${m.t2}</div>
+                            <div class="fw-bold small" style="flex: 1; text-align: right;">${m.t2}</div>
                         </div>
                         ${m.note || isAdmin ? `<input type="text" class="edit-field mt-2" placeholder="Catatan..." value="${m.note || ''}" ${!isAdmin ? 'disabled' : ''} onchange="editMatch(${i}, 'note', this.value)">` : ''}
                     </div>
@@ -359,10 +357,10 @@
         const sorted = Object.keys(teamsMap).map(n => ({ name: n, ...teamsMap[n], diff: teamsMap[n].pm - teamsMap[n].pk }))
                         .sort((a,b) => (b.p - a.p) || (b.diff - a.diff));
 
-        document.getElementById('standingsBody').innerHTML = sorted.map((s, idx) => `
+        document.getElementById('standingsBody').innerHTML = sorted.length ? sorted.map((s, idx) => `
             <tr><td class="text-start fw-bold">${idx<3?['🥇','🥈','🥉'][idx]:''} ${s.name}</td>
             <td>${s.m}</td><td>${s.w}</td><td>${s.l}</td><td class="points-cell">${s.p}</td></tr>
-        `).join('');
+        `).join('') : '<tr><td colspan="5" class="text-muted">Belum ada klasemen</td></tr>';
     }
 
     function formatIndo(dateStr) {
@@ -374,8 +372,8 @@
     function copyCurrentLink() {
         const cat = document.getElementById('categoryFilter').value.trim();
         if(!cat) return alert("Pilih kategori!");
-        const url = window.location.origin + window.location.pathname + '?cat=' + cat.replace(/ /g, "_");
-        navigator.clipboard.writeText(url).then(() => alert("Link Kategori Disalin!"));
+        const url = window.location.origin + window.location.pathname + '?cat=' + encodeURIComponent(cat.replace(/ /g, "_"));
+        navigator.clipboard.writeText(url).then(() => alert("Link Berhasil Disalin ke Clipboard!"));
     }
 
     function showLoading() { document.getElementById('loadingOverlay').style.display = 'flex'; }
@@ -383,13 +381,15 @@
 
     async function exportToPNG() {
         showLoading();
-        const element = document.getElementById('standingsCol');
-        const canvas = await html2canvas(element, { scale: 2 });
-        const link = document.createElement('a');
-        link.download = `Klasemen_${document.getElementById('categoryFilter').value}.png`;
-        link.href = canvas.toDataURL();
-        link.click();
-        hideLoading();
+        try {
+            const element = document.getElementById('standingsCol');
+            const canvas = await html2canvas(element, { scale: 2 });
+            const link = document.createElement('a');
+            link.download = `Klasemen_${document.getElementById('categoryFilter').value}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        } catch (e) { alert("Gagal mengekspor gambar."); }
+        finally { hideLoading(); }
     }
 
     function exportToExcel() {
