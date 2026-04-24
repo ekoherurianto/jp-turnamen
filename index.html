@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="pageTitle">PB Satria - Panghegar</title>
+    <title id="pageTitle">JP-Manajemen Turnamen</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -38,16 +38,16 @@
     </div>
 
     <div class="text-center mb-4">
-        <h1 class="fw-bold text-success">🏸 REGAR CUP <span id="dynamicCat">TOURNAMENT</span></h1>
+        <h1 class="fw-bold text-success">🏸 <span id="dynamicCat">Turnamen</span></h1>
         <div id="syncStatus" class="badge bg-secondary">Mode: Visitor</div>
         <button id="loginBtn" class="btn btn-sm btn-dark ms-2" onclick="loginAdmin()">Login Admin</button>
     </div>
 
     <div class="card p-3 mb-4 border-success border-top border-4">
-        <h6 class="fw-bold">🏸 Nama Kategori:</h6>
+        <h6 class="fw-bold">🏸 Nama Turnamen:</h6>
         <div class="input-group">
             <input type="text" id="categoryFilter" class="form-control form-control-lg" 
-                   placeholder="Ketik nama kategori (Contoh: Ganda Putra)..." 
+                   placeholder="Ketik nama kategori (Contoh: PB SURVEY)..." 
                    list="categoryOptions"
                    oninput="syncTitle(); renderSchedule(); calculateStandings();">
             <datalist id="categoryOptions"></datalist>
@@ -99,8 +99,8 @@
     
     <footer class="text-center mt-5 mb-4 text-muted">
         <hr class="mb-4" style="opacity: 0.1;">
-        <p class="small mb-0">&copy; 2026 <strong>REGAR CUP 2026</strong>. All Rights Reserved.</p>
-        <p style="font-size: 0.75rem;">By Juragan Pasir, Developed for REGAR CUP 2026 Tournament</p>
+        <p class="small mb-0">&copy; 2026 <strong>JP</strong>. All Rights Reserved.</p>
+        <p style="font-size: 0.75rem;">By Juragan Pasir, Developed for Badminton Tournament</p>
     </footer>
 </div>
 
