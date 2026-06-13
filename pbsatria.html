@@ -402,7 +402,7 @@
         let item = stats[n]; 
         item.diff = item.pm - item.pk; 
         return { name: n, ...item };
-    }).sort((a,b) => (b.p - a.p) || (b.diff - a.diff) || (b.totalPoin - a.totalPoin));
+    }).sort((a,b) => (b.p - a.p) || (b.totalPoin - a.totalPoin)|| (b.diff - a.diff));
 
     document.getElementById('standingsBody').innerHTML = sorted.map((s, idx) => `
         <tr>
